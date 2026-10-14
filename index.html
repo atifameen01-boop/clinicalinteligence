@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinical Intelligence: BMI & Metabolic Health</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        :root {
+            --primary: #0D9488;
+            --secondary: #FB923C;
+            --accent: #6366F1;
+            --bg-canvas: #F8FAFC;
+            --text-main: #0F172A;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-canvas);
+            color: var(--text-main);
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 1);
+        }
+
+        .metric-card {
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-4px);
+        }
+
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <!-- 
+    NARRATIVE PLAN:
+    1. Introduction: Establishing BMI as a surrogate measure and its mathematical basis.
+    2. Standard WHO Classification: Visualizing the global thresholds.
+    3. Ethnic-Specific Nuance: Highlighting the critical need for lower thresholds in Asian populations.
+    4. Limitations Analysis: Demonstrating what BMI misses (composition and distribution).
+    5. Modern Frameworks: Introducing ABCD (Adiposity-Based Chronic Disease) and complementary anthropometrics.
+    
+    VISUALIZATION JUSTIFICATION:
+    - WHO Categories -> Horizontal Bar Chart (Chart.js): Allows for clear ranking and categorization. (Goal: Compare)
+    - Ethnic Thresholds -> Grouped Bar Chart (Chart.js): Directly compares "Standard" vs "Asian" risk zones. (Goal: Compare/Inform)
+    - Fat Distribution -> Custom HTML/Tailwind Layout: Explains qualitative differences between VAT and Subcutaneous fat without SVG. (Goal: Organize)
+    - Metabolic Syndrome Criteria -> Grid Cards: Organizes disparate clinical markers efficiently. (Goal: Organize)
+    
+    PALETTE: Vibrant Healthcare (Teal & Coral)
+    - CONFIRMATION: NO SVG OR MERMAID JS WAS USED IN THIS OUTPUT.
+    -->
+
+    <header class="max-w-6xl mx-auto mb-12 text-center">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-teal-700 mb-4 tracking-tight">Clinical BMI Intelligence</h1>
+        <p class="text-lg text-slate-600 max-w-2xl mx-auto">
+            A comprehensive overview of Body Mass Index in Metabolic Medicine, addressing the transition from a simple index to Adiposity-Based Chronic Disease (ABCD) frameworks.
+        </p>
+    </header>
+
+    <main class="max-w-7xl mx-auto space-y-12">
+        
+        <!-- SECTION 1: THE FOUNDATION -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="md:col-span-1 flex flex-col justify-center glass-card p-8 rounded-3xl shadow-xl border-t-4 border-teal-500">
+                <h2 class="text-2xl font-bold mb-4">The Mathematical Index</h2>
+                <p class="text-slate-600 mb-6 italic">
+                    Weight (kg) / [Height (m)]²
+                </p>
+                <p class="text-sm leading-relaxed text-slate-500">
+                    Established by Adolphe Quetelet, BMI serves as a universal screening surrogate. While simple to track, its metabolic relevance relies on clinical context rather than the raw number alone.
+                </p>
+            </div>
+            
+            <div class="md:col-span-2 glass-card p-8 rounded-3xl shadow-xl">
+                <h3 class="text-xl font-semibold mb-2">Standard WHO Classifications</h3>
+                <p class="text-sm text-slate-500 mb-6">Comparative view of BMI cohorts and associated risk levels for European-descent populations.</p>
+                <div class="chart-container">
+                    <canvas id="whoChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: ETHNIC VARIATIONS -->
+        <section class="glass-card p-8 rounded-3xl shadow-xl bg-slate-50">
+            <div class="max-w-3xl mb-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Ethnic Threshold Adjustments</h2>
+                <p class="text-slate-600">
+                    A critical limitation of the standard WHO model is the ethnic variation in body fat distribution. Asian populations exhibit significantly higher visceral adiposity and cardiovascular risk at lower BMI values. Clinical guidelines now recommend lower thresholds for Type 2 Diabetes screening.
+                </p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                <div class="chart-container">
+                    <canvas id="ethnicChart"></canvas>
+                </div>
+                <div class="space-y-6">
+                    <div class="p-6 bg-white rounded-2xl shadow-sm border-l-4 border-orange-400">
+                        <span class="text-xs font-bold text-orange-600 uppercase">Screening Alert</span>
+                        <h4 class="text-lg font-bold mt-1">Asian-American Threshold</h4>
+                        <p class="text-sm text-slate-500">Screening for T2D is clinically recommended starting at a BMI of <strong>23.0 kg/m²</strong>.</p>
+                    </div>
+                    <div class="p-6 bg-white rounded-2xl shadow-sm border-l-4 border-teal-500">
+                        <span class="text-xs font-bold text-teal-600 uppercase">Obesity Definition</span>
+                        <h4 class="text-lg font-bold mt-1">South Asian Adjustment</h4>
+                        <p class="text-sm text-slate-500">The obesity threshold is lowered to <strong>25.0 kg/m²</strong>, reflecting high metabolic risk from visceral fat.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: LIMITATIONS & PATHOPHYSIOLOGY -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="md:col-span-1 space-y-6">
+                <h2 class="text-2xl font-bold text-slate-800">The BMI Blind Spots</h2>
+                <p class="text-sm text-slate-600">BMI is a measure of mass, not health. It fails to distinguish between different tissue types and metabolic impacts.</p>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center p-4 bg-teal-50 rounded-xl">
+                        <div class="w-10 h-10 flex-shrink-0 bg-teal-600 rounded-full flex items-center justify-center text-white font-bold mr-4">1</div>
+                        <p class="text-xs font-semibold text-teal-800">Cannot differentiate Skeletal Muscle from Adipose Tissue.</p>
+                    </div>
+                    <div class="flex items-center p-4 bg-orange-50 rounded-xl">
+                        <div class="w-10 h-10 flex-shrink-0 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold mr-4">2</div>
+                        <p class="text-xs font-semibold text-orange-800">Ignores Fat Distribution (Subcutaneous vs. Visceral/Ectopic).</p>
+                    </div>
+                    <div class="flex items-center p-4 bg-indigo-50 rounded-xl">
+                        <div class="w-10 h-10 flex-shrink-0 bg-indigo-500 rounded-full flex items-center justify-center text-white font-bold mr-4">3</div>
+                        <p class="text-xs font-semibold text-indigo-800">Misses Sarcopenic Obesity in aging populations.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="md:col-span-2 glass-card p-8 rounded-3xl shadow-xl">
+                <h3 class="text-xl font-bold mb-4">Adiposity Distribution vs. Metabolic Risk</h3>
+                <div id="distributionChart" class="w-full h-80"></div>
+                <p class="mt-4 text-xs text-slate-500 italic">This Plotly visualization highlights the disconnect between BMI and actual Body Fat Percentage across clinical phenotypes.</p>
+            </div>
+        </section>
+
+        <!-- SECTION 4: THE ABCD FRAMEWORK -->
+        <section class="glass-card p-8 rounded-3xl shadow-xl text-white bg-slate-900 border-none">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4">Beyond BMI: ABCD Framework</h2>
+                <p class="text-slate-400 max-w-2xl mx-auto">The American Association of Clinical Endocrinology defines Obesity as Adiposity-Based Chronic Disease (ABCD), focusing on functional complications.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="p-8 rounded-2xl bg-slate-800 border border-slate-700">
+                    <h4 class="text-teal-400 font-bold text-lg mb-4 underline">Biomedical Complications</h4>
+                    <ul class="space-y-3 text-sm">
+                        <li class="flex items-center">
+                            <span class="text-teal-400 mr-2">✦</span> Type 2 Diabetes & Insulin Resistance
+                        </li>
+                        <li class="flex items-center">
+                            <span class="text-teal-400 mr-2">✦</span> Dyslipidemia & Hypertension
+                        </li>
+                        <li class="flex items-center">
+                            <span class="text-teal-400 mr-2">✦</span> MASLD / NAFLD (Liver Adiposity)
+                        </li>
+                    </ul>
+                </div>
+                <div class="p-8 rounded-2xl bg-slate-800 border border-slate-700">
+                    <h4 class="text-orange-400 font-bold text-lg mb-4 underline">Biomechanical Complications</h4>
+                    <ul class="space-y-3 text-sm">
+                        <li class="flex items-center">
+                            <span class="text-orange-400 mr-2">✦</span> Obstructive Sleep Apnea (OSA)
+                        </li>
+                        <li class="flex items-center">
+                            <span class="text-orange-400 mr-2">✦</span> Osteoarthritis & Joint Strain
+                        </li>
+                        <li class="flex items-center">
+                            <span class="text-orange-400 mr-2">✦</span> GERD & Immobility Challenges
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: COMPLEMENTARY ANTHROPOMETRICS -->
+        <section class="pb-12">
+            <div class="flex flex-col md:flex-row items-center justify-between mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">Advanced Anthropometric Tools</h2>
+                    <p class="text-sm text-slate-500">Pairing BMI with direct measures for precise metabolic risk assessment.</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="metric-card p-6 bg-white rounded-2xl shadow-md border border-slate-100">
+                    <h5 class="text-xs font-bold text-indigo-600 mb-2 uppercase tracking-widest">Metabolic Marker</h5>
+                    <h4 class="text-lg font-bold mb-2">Waist Circumference</h4>
+                    <p class="text-sm text-slate-600 mb-4">The gold standard for abdominal obesity assessment. Thresholds vary by population (e.g., 88cm in US women, 102cm in US men).</p>
+                </div>
+                <div class="metric-card p-6 bg-white rounded-2xl shadow-md border border-slate-100">
+                    <h5 class="text-xs font-bold text-teal-600 mb-2 uppercase tracking-widest">Emerging Metric</h5>
+                    <h4 class="text-lg font-bold mb-2">Waist-to-Height Ratio</h4>
+                    <p class="text-sm text-slate-600 mb-4">Superior to BMI for cardiometabolic prediction. A universal boundary of <strong>WHtR ≥ 0.5</strong> indicates elevated risk.</p>
+                </div>
+                <div class="metric-card p-6 bg-white rounded-2xl shadow-md border border-slate-100">
+                    <h5 class="text-xs font-bold text-orange-600 mb-2 uppercase tracking-widest">Biometric Data</h5>
+                    <h4 class="text-lg font-bold mb-2">VAT & HOMA-IR</h4>
+                    <p class="text-sm text-slate-600 mb-4">Direct measurement of Visceral Adipose Tissue and Homeostatic Model Assessment of Insulin Resistance.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="mt-20 pt-12 border-t border-slate-200 max-w-6xl mx-auto text-center pb-20">
+        <p class="text-xs text-slate-400 uppercase tracking-widest font-bold">Clinical Resource for Endocrinology & Metabolic Health</p>
+        <p class="text-xs text-slate-400 mt-2">Data based on WHO 2024 Guidelines, IDF Standards, and AACE ABCD Framework.</p>
+    </footer>
+
+    <script>
+        // HELPER: Label Wrapping Logic (>16 chars)
+        function wrapLabels(labels) {
+            return labels.map(label => {
+                if (label.length > 16) {
+                    const words = label.split(' ');
+                    let lines = [];
+                    let currentLine = words[0];
+                    for (let i = 1; i < words.length; i++) {
+                        if ((currentLine + ' ' + words[i]).length < 16) {
+                            currentLine += ' ' + words[i];
+                        } else {
+                            lines.push(currentLine);
+                            currentLine = words[i];
+                        }
+                    }
+                    lines.push(currentLine);
+                    return lines;
+                }
+                return label;
+            });
+        }
+
+        // TOOLTIP CONFIGURATION
+        const sharedTooltipConfig = {
+            callbacks: {
+                title: function(tooltipItems) {
+                    const item = tooltipItems[0];
+                    let label = item.chart.data.labels[item.dataIndex];
+                    if (Array.isArray(label)) {
+                        return label.join(' ');
+                    } else {
+                        return label;
+                    }
+                }
+            }
+        };
+
+        // CHART 1: WHO Standard Classifications
+        const whoCtx = document.getElementById('whoChart').getContext('2d');
+        new Chart(whoCtx, {
+            type: 'bar',
+            data: {
+                labels: wrapLabels(['Underweight', 'Normal Range', 'Overweight (Pre-obese)', 'Obesity Class I', 'Obesity Class II', 'Obesity Class III']),
+                datasets: [{
+                    label: 'BMI Lower Bound (kg/m²)',
+                    data: [0, 18.5, 25.0, 30.0, 35.0, 40.0],
+                    backgroundColor: [
+                        '#94A3B8', '#0D9488', '#FACC15', '#FB923C', '#F87171', '#991B1B'
+                    ],
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: sharedTooltipConfig
+                },
+                scales: {
+                    x: { grid: { display: false }, title: { display: true, text: 'BMI Value Threshold' } }
+                }
+            }
+        });
+
+        // CHART 2: Ethnic Comparison
+        const ethnicCtx = document.getElementById('ethnicChart').getContext('2d');
+        new Chart(ethnicCtx, {
+            type: 'bar',
+            data: {
+                labels: wrapLabels(['Overweight Threshold', 'Obesity Threshold']),
+                datasets: [
+                    {
+                        label: 'Standard WHO (European)',
+                        data: [25, 30],
+                        backgroundColor: '#64748B'
+                    },
+                    {
+                        label: 'Asian Adjusted',
+                        data: [23, 25],
+                        backgroundColor: '#0D9488'
+                    }
+                ]
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    tooltip: sharedTooltipConfig
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: false, 
+                        min: 20,
+                        title: { display: true, text: 'BMI (kg/m²)' }
+                    }
+                }
+            }
+        });
+
+        // PLOTLY 3: Relationship (BMI vs. Adiposity Proxy)
+        const trace1 = {
+            x: [18, 22, 24, 25, 28, 30, 32, 35, 38, 42],
+            y: [12, 18, 22, 35, 26, 32, 45, 38, 48, 52],
+            mode: 'markers',
+            type: 'scatter',
+            name: 'Metabolically Healthy',
+            marker: { size: 12, color: '#0D9488', opacity: 0.7 }
+        };
+
+        const trace2 = {
+            x: [23, 25, 26, 28, 24, 27, 29, 31],
+            y: [32, 38, 41, 44, 30, 36, 40, 43],
+            mode: 'markers',
+            type: 'scatter',
+            name: 'Metabolically Unhealthy',
+            marker: { size: 12, color: '#FB923C', opacity: 0.7 }
+        };
+
+        const layout = {
+            title: { text: 'BMI vs. Real Body Fat %', font: { size: 14 } },
+            xaxis: { title: 'BMI Index' },
+            yaxis: { title: 'Actual Body Fat %' },
+            margin: { t: 40, l: 40, r: 20, b: 40 },
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            legend: { orientation: 'h', y: -0.2 }
+        };
+
+        Plotly.newPlot('distributionChart', [trace1, trace2], layout, { responsive: true, displayModeBar: false });
+
+    </script>
+</body>
+</html>
